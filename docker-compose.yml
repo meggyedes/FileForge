@@ -1,0 +1,42 @@
+services:
+  gateway:
+    build: {context: ./backend, dockerfile: Dockerfile.gateway}
+    ports: ["127.0.0.1:8080:8080"]
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Required}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?Required}
+      WORKER_URL: http://worker:8081
+      INTERNAL_WORKER_TOKEN: ${INTERNAL_WORKER_TOKEN:?Required}
+      TRUST_PROXY: '1'
+    networks: [public, private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 384m
+    cpus: 0.75
+    pids_limit: 96
+    restart: unless-stopped
+    depends_on: [worker]
+  worker:
+    build: {context: ./backend, dockerfile: Dockerfile.worker}
+    environment:
+      NODE_ENV: production
+      WORKER_PORT: 8081
+      INTERNAL_WORKER_TOKEN: ${INTERNAL_WORKER_TOKEN:?Required}
+    networks: [private]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=350m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1.5
+    pids_limit: 128
+    restart: unless-stopped
+networks:
+  public: {}
+  private:
+    internal: true
