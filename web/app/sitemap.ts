@@ -1,0 +1,1 @@
+import type {MetadataRoute} from 'next';import {tools} from '@/lib/tools';export default function sitemap():MetadataRoute.Sitemap{const root='https://meggyedes.github.io/FileForge';return ['','/corrupted-file-generator','/privacy','/terms','/contact',...tools.map(t=>'/'+t.slug)].map(path=>({url:root+path+'/',lastModified:new Date()}))}
